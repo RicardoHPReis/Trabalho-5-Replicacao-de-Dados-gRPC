@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package replication;
+
+service ReplicationService {
+  // Cliente → Líder
+  rpc Write (WriteRequest) returns (WriteResponse);
+  rpc Query (QueryRequest) returns (QueryResponse);
+
+  // Líder → Réplicas
+  rpc PushLog (LogEntry) returns (Ack);
+  rpc Commit (CommitRequest) returns (Ack);
+
+  // Réplica → Líder (em caso de inconsistência)
+  rpc SyncLog (SyncRequest) returns (SyncResponse);
+}
+
+message WriteRequest {
+  string data = 1;
+}
+
+message WriteResponse {
+  bool sucesso = 1;
+  string mensagem = 2;
+}
+
+message QueryRequest {}
+
+message QueryResponse {
+  repeated LogEntry entries = 1;
+}
+
+message LogEntry {
+  string data = 1;
+  int32 epoca = 2;
+  int32 offset = 3;
+}
+
+message Ack {
+  bool sucesso = 1;
+  string mensagem = 2;
+}
+
+message CommitRequest {
+  int32 epoca = 1;
+  int32 offset = 2;
+}
+
+message SyncRequest {}
+
+message SyncResponse {
+  repeated LogEntry entries = 1;
+}

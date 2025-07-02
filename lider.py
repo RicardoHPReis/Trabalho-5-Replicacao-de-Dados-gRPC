@@ -1,21 +1,20 @@
-from protos import replication_pb2, replication_pb2_grpc
 from concurrent import futures
+import replication_pb2_grpc
+import replication_pb2
 import argparse as arg
 import threading
 import asyncio
 import grpc
 
-# Endereços das réplicas (ajustar conforme portas usadas)
 PORTA = 50050
-REPLICAS = ['localhost:50051', 'localhost:50052', 'localhost:50053']
-
-# Epoch pode ser fixo para simplicidade
-EPOCH = 1
+EPOCA = 1
 
 class Lider(replication_pb2_grpc.ReplicationServiceServicer):
-    def __init__(self, replicas):
-        self.log = []  # lista de entradas: [(epoch, offset, data, committed)]
-        #self.replicas = [f'localhost:5005{i}' for i in range(1, replicas + 1)]
+    def __init__(self, num_replicas):
+        self.log = []  # lista de entradas: epoca, offset, data, committed
+        self.num_replicas = num_replicas
+        print(f"Inicializando líder com {num_replicas} réplicas...")
+        self.replicas = [f'localhost:5005{i}' for i in range(1, num_replicas + 1)]
         self.offset = 0
         self.lock = threading.Lock()
 
@@ -24,7 +23,7 @@ class Lider(replication_pb2_grpc.ReplicationServiceServicer):
         with self.lock:
             entry = {
                 "data": data,
-                "epoch": EPOCH,
+                "epoca": EPOCA,
                 "offset": self.offset,
                 "committed": False
             }
@@ -36,12 +35,12 @@ class Lider(replication_pb2_grpc.ReplicationServiceServicer):
     def _enviar_para_replicas(self, entry):
         async def send():
             acks = 0
-            tasks = []
-            for replica in REPLICAS:
-                tasks.append(self._push_para_replica(replica, entry))
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            for result in results:
-                if isinstance(result, bool) and result:
+            tarefas = []
+            for replica in self.replicas:
+                tarefas.append(self._push_para_replica(replica, entry))
+            respostas = await asyncio.gather(*tarefas, return_exceptions=True)
+            for resultado in respostas:
+                if isinstance(resultado, bool) and resultado:
                     acks += 1
             return acks
         return asyncio.run(send())
@@ -52,12 +51,12 @@ class Lider(replication_pb2_grpc.ReplicationServiceServicer):
             stub = replication_pb2_grpc.ReplicationServiceStub(channel)
             log_entry = replication_pb2.LogEntry(
                 data=entry["data"],
-                epoch=entry["epoch"],
+                epoca=entry["epoca"],
                 offset=entry["offset"]
             )
             try:
                 ack = await stub.PushLog(log_entry)
-                return ack.success
+                return ack.sucesso
             except Exception as e:
                 print(f"Erro ao enviar para {endereco}: {e}")
                 return False
@@ -66,18 +65,17 @@ class Lider(replication_pb2_grpc.ReplicationServiceServicer):
     def _commit_replicas(self, entry):
         async def send_commit():
             tasks = []
-            for replica in REPLICAS:
+            for replica in self.replicas:
                 async with grpc.aio.insecure_channel(replica) as channel:
                     stub = replication_pb2_grpc.ReplicationServiceStub(channel)
                     commit_msg = replication_pb2.CommitRequest(
-                        epoch=entry["epoch"],
+                        epoca=entry["epoca"],
                         offset=entry["offset"]
                     )
                     try:
                         await stub.Commit(commit_msg)
                     except Exception as e:
-                        print(f"Erro no commit para {replica}: {e}")
-                        
+                        print(f"Erro no commit para {replica}: {e}")         
         asyncio.run(send_commit())
 
 
@@ -88,19 +86,19 @@ class Lider(replication_pb2_grpc.ReplicationServiceServicer):
         print("Enviando para réplicas...")
         ack_count = self._enviar_para_replicas(entry)
 
-        if ack_count >= 2:  # maioria de 3
+        if ack_count > self.num_replicas / 2:
             print("Maioria confirmou, enviando commit.")
             entry["committed"] = True
             self._commit_replicas(entry)
-            return replication_pb2.WriteResponse(success=True, message="Gravação replicada e committed.")
+            return replication_pb2.WriteResponse(sucesso=True, mensagem="Gravação replicada e committed.")
         else:
             print("Falha ao atingir maioria.")
-            return replication_pb2.WriteResponse(success=False, message="Falha na replicação.")
+            return replication_pb2.WriteResponse(sucesso=False, mensagem="Falha na replicação.")
 
 
     def Query(self, request, context):
         committed_entries = [
-            replication_pb2.LogEntry(data=e["data"], epoch=e["epoch"], offset=e["offset"])
+            replication_pb2.LogEntry(data=e["data"], epoca=e["epoca"], offset=e["offset"])
             for e in self.log if e["committed"]
         ]
         return replication_pb2.QueryResponse(entries=committed_entries)
