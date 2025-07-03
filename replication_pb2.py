@@ -24,31 +24,29 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11replication.proto\x12\x0breplication\"\x1c\n\x0cWriteRequest\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"2\n\rWriteResponse\x12\x0f\n\x07sucesso\x18\x01 \x01(\x08\x12\x10\n\x08mensagem\x18\x02 \x01(\t\"\x0e\n\x0cQueryRequest\"7\n\rQueryResponse\x12&\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x15.replication.LogEntry\"7\n\x08LogEntry\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\x12\r\n\x05\x65poca\x18\x02 \x01(\x05\x12\x0e\n\x06offset\x18\x03 \x01(\x05\"(\n\x03\x41\x63k\x12\x0f\n\x07sucesso\x18\x01 \x01(\x08\x12\x10\n\x08mensagem\x18\x02 \x01(\t\".\n\rCommitRequest\x12\r\n\x05\x65poca\x18\x01 \x01(\x05\x12\x0e\n\x06offset\x18\x02 \x01(\x05\"\r\n\x0bSyncRequest\"6\n\x0cSyncResponse\x12&\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x15.replication.LogEntry2\xc0\x02\n\x12ReplicationService\x12>\n\x05Write\x12\x19.replication.WriteRequest\x1a\x1a.replication.WriteResponse\x12>\n\x05Query\x12\x19.replication.QueryRequest\x1a\x1a.replication.QueryResponse\x12\x32\n\x07PushLog\x12\x15.replication.LogEntry\x1a\x10.replication.Ack\x12\x36\n\x06\x43ommit\x12\x1a.replication.CommitRequest\x1a\x10.replication.Ack\x12>\n\x07SyncLog\x12\x18.replication.SyncRequest\x1a\x19.replication.SyncResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11replication.proto\x12\x0breplication\"-\n\rAppendRequest\x12\r\n\x05\x63have\x18\x01 \x01(\t\x12\r\n\x05valor\x18\x02 \x01(\t\"3\n\x0e\x41ppendResponse\x12\x0f\n\x07sucesso\x18\x01 \x01(\x08\x12\x10\n\x08mensagem\x18\x02 \x01(\t\"\x1d\n\x0cQueryRequest\x12\r\n\x05\x63have\x18\x01 \x01(\t\"1\n\rQueryResponse\x12\r\n\x05valor\x18\x01 \x01(\t\x12\x11\n\tcommitted\x18\x02 \x01(\x08\"G\n\x08LogEntry\x12\r\n\x05\x65poca\x18\x01 \x01(\x05\x12\x0e\n\x06offset\x18\x02 \x01(\x05\x12\r\n\x05\x63have\x18\x03 \x01(\t\x12\r\n\x05valor\x18\x04 \x01(\t\".\n\rCommitRequest\x12\r\n\x05\x65poca\x18\x01 \x01(\x05\x12\x0e\n\x06offset\x18\x02 \x01(\x05\"0\n\x0b\x41\x63kResponse\x12\x0f\n\x07sucesso\x18\x01 \x01(\x08\x12\x10\n\x08mensagem\x18\x02 \x01(\t2\x99\x01\n\x0cLiderServico\x12\x45\n\nAppendData\x12\x1a.replication.AppendRequest\x1a\x1b.replication.AppendResponse\x12\x42\n\tQueryData\x12\x19.replication.QueryRequest\x1a\x1a.replication.QueryResponse2\x93\x01\n\x0eReplicaServico\x12<\n\tPushEntry\x12\x15.replication.LogEntry\x1a\x18.replication.AckResponse\x12\x43\n\x0b\x43ommitEntry\x12\x1a.replication.CommitRequest\x1a\x18.replication.AckResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'replication_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_WRITEREQUEST']._serialized_start=34
-  _globals['_WRITEREQUEST']._serialized_end=62
-  _globals['_WRITERESPONSE']._serialized_start=64
-  _globals['_WRITERESPONSE']._serialized_end=114
-  _globals['_QUERYREQUEST']._serialized_start=116
-  _globals['_QUERYREQUEST']._serialized_end=130
-  _globals['_QUERYRESPONSE']._serialized_start=132
-  _globals['_QUERYRESPONSE']._serialized_end=187
-  _globals['_LOGENTRY']._serialized_start=189
-  _globals['_LOGENTRY']._serialized_end=244
-  _globals['_ACK']._serialized_start=246
-  _globals['_ACK']._serialized_end=286
-  _globals['_COMMITREQUEST']._serialized_start=288
-  _globals['_COMMITREQUEST']._serialized_end=334
-  _globals['_SYNCREQUEST']._serialized_start=336
-  _globals['_SYNCREQUEST']._serialized_end=349
-  _globals['_SYNCRESPONSE']._serialized_start=351
-  _globals['_SYNCRESPONSE']._serialized_end=405
-  _globals['_REPLICATIONSERVICE']._serialized_start=408
-  _globals['_REPLICATIONSERVICE']._serialized_end=728
+  _globals['_APPENDREQUEST']._serialized_start=34
+  _globals['_APPENDREQUEST']._serialized_end=79
+  _globals['_APPENDRESPONSE']._serialized_start=81
+  _globals['_APPENDRESPONSE']._serialized_end=132
+  _globals['_QUERYREQUEST']._serialized_start=134
+  _globals['_QUERYREQUEST']._serialized_end=163
+  _globals['_QUERYRESPONSE']._serialized_start=165
+  _globals['_QUERYRESPONSE']._serialized_end=214
+  _globals['_LOGENTRY']._serialized_start=216
+  _globals['_LOGENTRY']._serialized_end=287
+  _globals['_COMMITREQUEST']._serialized_start=289
+  _globals['_COMMITREQUEST']._serialized_end=335
+  _globals['_ACKRESPONSE']._serialized_start=337
+  _globals['_ACKRESPONSE']._serialized_end=385
+  _globals['_LIDERSERVICO']._serialized_start=388
+  _globals['_LIDERSERVICO']._serialized_end=541
+  _globals['_REPLICASERVICO']._serialized_start=544
+  _globals['_REPLICASERVICO']._serialized_end=691
 # @@protoc_insertion_point(module_scope)

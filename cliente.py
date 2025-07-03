@@ -1,40 +1,65 @@
 import replication_pb2_grpc
 import replication_pb2
 import grpc
+import time
+import os
 
 LIDER_ENDERECO = 'localhost:50050'
 
-def escrever_dado(stub):
-    dado = input("Digite o dado a ser enviado: ")
-    requisicao = replication_pb2.WriteRequest(data=dado)
-    resposta = stub.Write(requisicao)
-    print(f"[Resposta] Sucesso: {resposta.sucesso}, Mensagem: {resposta.mensagem}")
+def conectar_lider():
+    channel = grpc.insecure_channel(LIDER_ENDERECO)
+    stub = replication_pb2_grpc.LiderServicoStub(channel)
+    return stub
 
-def consultar_dados(stub):
-    requisicao = replication_pb2.QueryRequest()
-    resposta = stub.Query(requisicao)
-    print("\n[DADOS COMMITADOS NO LÍDER]")
-    for entry in resposta.entries:
-        print(f"- Época: {entry.epoca}, Offset: {entry.offset}, Data: '{entry.data}'")
+def enviar_dados(stub):
+    chave = input("Digite a chave: ").strip()
+    valor = input("Digite o valor: ").strip()
+    requisicao = replication_pb2.AppendRequest(chave=chave, valor=valor)
+    try:
+        resposta = stub.AppendData(requisicao)
+        if resposta.sucesso:
+            print("Dados gravados com sucesso.")
+        else:
+            print(f"Falha ao gravar: {resposta.mensagem}")
+    except grpc.RpcError as e:
+        print(f"Erro ao contatar o líder: {e}")
 
-def menu():
-    with grpc.insecure_channel(LIDER_ENDERECO) as channel:
-        stub = replication_pb2_grpc.ReplicationServiceStub(channel)
-        while True:
-            print("\n--- Cliente ---")
-            print("1. Enviar dado")
-            print("2. Consultar dados")
-            print("3. Sair")
-            opcao = input("Escolha: ")
+def retornar_dados(stub):
+    chave = input("Digite a chave para consulta: ").strip()
+    requisicao = replication_pb2.QueryRequest(chave=chave)
+    try:
+        resposta = stub.QueryData(requisicao)
+        if resposta.committed:
+            print(f"Valor encontrado: {resposta.valor}\n")
+        else:
+            print("Chave não encontrada ou não committed.")
+    except grpc.RpcError as e:
+        print(f"Erro ao consultar o líder: {e}")
 
-            if opcao == '1':
-                escrever_dado(stub)
-            elif opcao == '2':
-                consultar_dados(stub)
-            elif opcao == '3':
-                break
-            else:
-                print("Opção inválida.")
+def main():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    stub = conectar_lider()
+    while True:
+        print("--------------------")
+        print("       CLIENTE      ")
+        print("--------------------\n")
+        print("1. Enviar chave/valor")
+        print("2. Consultar chave")
+        print("3. Sair")
+        escolha = input("Escolha: ").strip()
+
+        if escolha == "1":
+            enviar_dados(stub)
+        elif escolha == "2":
+            retornar_dados(stub)
+        elif escolha == "3":
+            print("Saindo...")
+            time.sleep(3)
+            break
+        else:
+            print("Opção inválida.")
+            time.sleep(3)
+            os.system('cls' if os.name == 'nt' else 'clear')
 
 if __name__ == '__main__':
-    menu()
+    main()

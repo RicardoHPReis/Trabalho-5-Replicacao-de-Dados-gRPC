@@ -2,52 +2,61 @@ syntax = "proto3";
 
 package replication;
 
-service ReplicationService {
-  // Cliente → Líder
-  rpc Write (WriteRequest) returns (WriteResponse);
-  rpc Query (QueryRequest) returns (QueryResponse);
+service LiderServico {
+  // Cliente → Líder: Solicita gravação de um par chave-valor
+  rpc AppendData(AppendRequest) returns (AppendResponse);
 
-  // Líder → Réplicas
-  rpc PushLog (LogEntry) returns (Ack);
-  rpc Commit (CommitRequest) returns (Ack);
-
-  // Réplica → Líder (em caso de inconsistência)
-  rpc SyncLog (SyncRequest) returns (SyncResponse);
+  // Cliente → Líder: Consulta dados por chave
+  rpc QueryData(QueryRequest) returns (QueryResponse);
 }
 
-message WriteRequest {
-  string data = 1;
+service ReplicaServico {
+  // Líder → Réplica: Envia nova entrada de log
+  rpc PushEntry(LogEntry) returns (AckResponse);
+
+  // Líder → Réplica: Confirma que a entrada deve ser aplicada (commit)
+  rpc CommitEntry(CommitRequest) returns (AckResponse);
 }
 
-message WriteResponse {
+// Requisição do cliente para gravar um dado
+message AppendRequest {
+  string chave = 1;
+  string valor = 2;
+}
+
+// Resposta para a gravação
+message AppendResponse {
   bool sucesso = 1;
   string mensagem = 2;
 }
 
-message QueryRequest {}
+// Requisição do cliente para consultar um dado
+message QueryRequest {
+  string chave = 1;
+}
 
+// Resposta da consulta
 message QueryResponse {
-  repeated LogEntry entries = 1;
+  string valor = 1;
+  bool committed = 2;
 }
 
+// Entrada de log enviada do líder para uma réplica
 message LogEntry {
-  string data = 1;
-  int32 epoca = 2;
-  int32 offset = 3;
+  int32 epoca = 1;
+  int32 offset = 2;
+  string chave = 3;
+  string valor = 4;
 }
 
-message Ack {
-  bool sucesso = 1;
-  string mensagem = 2;
-}
-
+// Requisição de commit enviada para as réplicas
 message CommitRequest {
   int32 epoca = 1;
   int32 offset = 2;
 }
 
-message SyncRequest {}
-
-message SyncResponse {
-  repeated LogEntry entries = 1;
+// Resposta de ACK (confirmação) enviada pelas réplicas
+message AckResponse {
+  bool sucesso = 1;
+  string mensagem = 2;
 }

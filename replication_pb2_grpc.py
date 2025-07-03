@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class ReplicationServiceStub(object):
+class LiderServicoStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,110 +34,61 @@ class ReplicationServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Write = channel.unary_unary(
-                '/replication.ReplicationService/Write',
-                request_serializer=replication__pb2.WriteRequest.SerializeToString,
-                response_deserializer=replication__pb2.WriteResponse.FromString,
+        self.AppendData = channel.unary_unary(
+                '/replication.LiderServico/AppendData',
+                request_serializer=replication__pb2.AppendRequest.SerializeToString,
+                response_deserializer=replication__pb2.AppendResponse.FromString,
                 _registered_method=True)
-        self.Query = channel.unary_unary(
-                '/replication.ReplicationService/Query',
+        self.QueryData = channel.unary_unary(
+                '/replication.LiderServico/QueryData',
                 request_serializer=replication__pb2.QueryRequest.SerializeToString,
                 response_deserializer=replication__pb2.QueryResponse.FromString,
                 _registered_method=True)
-        self.PushLog = channel.unary_unary(
-                '/replication.ReplicationService/PushLog',
-                request_serializer=replication__pb2.LogEntry.SerializeToString,
-                response_deserializer=replication__pb2.Ack.FromString,
-                _registered_method=True)
-        self.Commit = channel.unary_unary(
-                '/replication.ReplicationService/Commit',
-                request_serializer=replication__pb2.CommitRequest.SerializeToString,
-                response_deserializer=replication__pb2.Ack.FromString,
-                _registered_method=True)
-        self.SyncLog = channel.unary_unary(
-                '/replication.ReplicationService/SyncLog',
-                request_serializer=replication__pb2.SyncRequest.SerializeToString,
-                response_deserializer=replication__pb2.SyncResponse.FromString,
-                _registered_method=True)
 
 
-class ReplicationServiceServicer(object):
+class LiderServicoServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def Write(self, request, context):
-        """Cliente → Líder
+    def AppendData(self, request, context):
+        """Cliente → Líder: Solicita gravação de um par chave-valor
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def Query(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def PushLog(self, request, context):
-        """Líder → Réplicas
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def Commit(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SyncLog(self, request, context):
-        """Réplica → Líder (em caso de inconsistência)
+    def QueryData(self, request, context):
+        """Cliente → Líder: Consulta dados por chave
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_ReplicationServiceServicer_to_server(servicer, server):
+def add_LiderServicoServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Write': grpc.unary_unary_rpc_method_handler(
-                    servicer.Write,
-                    request_deserializer=replication__pb2.WriteRequest.FromString,
-                    response_serializer=replication__pb2.WriteResponse.SerializeToString,
+            'AppendData': grpc.unary_unary_rpc_method_handler(
+                    servicer.AppendData,
+                    request_deserializer=replication__pb2.AppendRequest.FromString,
+                    response_serializer=replication__pb2.AppendResponse.SerializeToString,
             ),
-            'Query': grpc.unary_unary_rpc_method_handler(
-                    servicer.Query,
+            'QueryData': grpc.unary_unary_rpc_method_handler(
+                    servicer.QueryData,
                     request_deserializer=replication__pb2.QueryRequest.FromString,
                     response_serializer=replication__pb2.QueryResponse.SerializeToString,
             ),
-            'PushLog': grpc.unary_unary_rpc_method_handler(
-                    servicer.PushLog,
-                    request_deserializer=replication__pb2.LogEntry.FromString,
-                    response_serializer=replication__pb2.Ack.SerializeToString,
-            ),
-            'Commit': grpc.unary_unary_rpc_method_handler(
-                    servicer.Commit,
-                    request_deserializer=replication__pb2.CommitRequest.FromString,
-                    response_serializer=replication__pb2.Ack.SerializeToString,
-            ),
-            'SyncLog': grpc.unary_unary_rpc_method_handler(
-                    servicer.SyncLog,
-                    request_deserializer=replication__pb2.SyncRequest.FromString,
-                    response_serializer=replication__pb2.SyncResponse.SerializeToString,
-            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'replication.ReplicationService', rpc_method_handlers)
+            'replication.LiderServico', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('replication.ReplicationService', rpc_method_handlers)
+    server.add_registered_method_handlers('replication.LiderServico', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class ReplicationService(object):
+class LiderServico(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def Write(request,
+    def AppendData(request,
             target,
             options=(),
             channel_credentials=None,
@@ -150,9 +101,9 @@ class ReplicationService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/replication.ReplicationService/Write',
-            replication__pb2.WriteRequest.SerializeToString,
-            replication__pb2.WriteResponse.FromString,
+            '/replication.LiderServico/AppendData',
+            replication__pb2.AppendRequest.SerializeToString,
+            replication__pb2.AppendResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -164,7 +115,7 @@ class ReplicationService(object):
             _registered_method=True)
 
     @staticmethod
-    def Query(request,
+    def QueryData(request,
             target,
             options=(),
             channel_credentials=None,
@@ -177,7 +128,7 @@ class ReplicationService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/replication.ReplicationService/Query',
+            '/replication.LiderServico/QueryData',
             replication__pb2.QueryRequest.SerializeToString,
             replication__pb2.QueryResponse.FromString,
             options,
@@ -190,8 +141,71 @@ class ReplicationService(object):
             metadata,
             _registered_method=True)
 
+
+class ReplicaServicoStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.PushEntry = channel.unary_unary(
+                '/replication.ReplicaServico/PushEntry',
+                request_serializer=replication__pb2.LogEntry.SerializeToString,
+                response_deserializer=replication__pb2.AckResponse.FromString,
+                _registered_method=True)
+        self.CommitEntry = channel.unary_unary(
+                '/replication.ReplicaServico/CommitEntry',
+                request_serializer=replication__pb2.CommitRequest.SerializeToString,
+                response_deserializer=replication__pb2.AckResponse.FromString,
+                _registered_method=True)
+
+
+class ReplicaServicoServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def PushEntry(self, request, context):
+        """Líder → Réplica: Envia nova entrada de log
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CommitEntry(self, request, context):
+        """Líder → Réplica: Confirma que a entrada deve ser aplicada (commit)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_ReplicaServicoServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'PushEntry': grpc.unary_unary_rpc_method_handler(
+                    servicer.PushEntry,
+                    request_deserializer=replication__pb2.LogEntry.FromString,
+                    response_serializer=replication__pb2.AckResponse.SerializeToString,
+            ),
+            'CommitEntry': grpc.unary_unary_rpc_method_handler(
+                    servicer.CommitEntry,
+                    request_deserializer=replication__pb2.CommitRequest.FromString,
+                    response_serializer=replication__pb2.AckResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'replication.ReplicaServico', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('replication.ReplicaServico', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class ReplicaServico(object):
+    """Missing associated documentation comment in .proto file."""
+
     @staticmethod
-    def PushLog(request,
+    def PushEntry(request,
             target,
             options=(),
             channel_credentials=None,
@@ -204,9 +218,9 @@ class ReplicationService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/replication.ReplicationService/PushLog',
+            '/replication.ReplicaServico/PushEntry',
             replication__pb2.LogEntry.SerializeToString,
-            replication__pb2.Ack.FromString,
+            replication__pb2.AckResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -218,7 +232,7 @@ class ReplicationService(object):
             _registered_method=True)
 
     @staticmethod
-    def Commit(request,
+    def CommitEntry(request,
             target,
             options=(),
             channel_credentials=None,
@@ -231,36 +245,9 @@ class ReplicationService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/replication.ReplicationService/Commit',
+            '/replication.ReplicaServico/CommitEntry',
             replication__pb2.CommitRequest.SerializeToString,
-            replication__pb2.Ack.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def SyncLog(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/replication.ReplicationService/SyncLog',
-            replication__pb2.SyncRequest.SerializeToString,
-            replication__pb2.SyncResponse.FromString,
+            replication__pb2.AckResponse.FromString,
             options,
             channel_credentials,
             insecure,
