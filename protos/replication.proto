@@ -3,45 +3,51 @@ syntax = "proto3";
 package replication;
 
 service LiderServico {
-  // Cliente → Líder: Solicita gravação de um par chave-valor
+  // Cliente -> Líder: Solicita gravação de um par chave-valor
   rpc AppendData(AppendRequest) returns (AppendResponse);
 
-  // Cliente → Líder: Consulta dados por chave
+  // Cliente -> Líder: Consulta dados por chave
   rpc QueryData(QueryRequest) returns (QueryResponse);
+
+  // Replica -> Líder:
+  rpc SyncLog(SyncRequest) returns (SyncResponse);
 }
 
 service ReplicaServico {
-  // Líder → Réplica: Envia nova entrada de log
+  // Líder -> Réplica: Envia nova entrada de log
   rpc PushEntry(LogEntry) returns (AckResponse);
 
-  // Líder → Réplica: Confirma que a entrada deve ser aplicada (commit)
+  // Líder -> Réplica: Confirma que a entrada deve ser aplicada (commit)
   rpc CommitEntry(CommitRequest) returns (AckResponse);
 }
 
-// Requisição do cliente para gravar um dado
 message AppendRequest {
   string chave = 1;
   string valor = 2;
 }
 
-// Resposta para a gravação
 message AppendResponse {
   bool sucesso = 1;
   string mensagem = 2;
 }
 
-// Requisição do cliente para consultar um dado
 message QueryRequest {
   string chave = 1;
 }
 
-// Resposta da consulta
 message QueryResponse {
   string valor = 1;
   bool committed = 2;
 }
 
-// Entrada de log enviada do líder para uma réplica
+message SyncRequest {
+  int32 ultimo_offset = 1;
+}
+
+message SyncResponse {
+  repeated LogEntry entradas = 1;
+}
+
 message LogEntry {
   int32 epoca = 1;
   int32 offset = 2;
@@ -49,13 +55,11 @@ message LogEntry {
   string valor = 4;
 }
 
-// Requisição de commit enviada para as réplicas
 message CommitRequest {
   int32 epoca = 1;
   int32 offset = 2;
 }
 
-// Resposta de ACK (confirmação) enviada pelas réplicas
 message AckResponse {
   bool sucesso = 1;
   string mensagem = 2;

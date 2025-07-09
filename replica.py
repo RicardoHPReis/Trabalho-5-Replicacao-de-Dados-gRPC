@@ -7,6 +7,7 @@ import os
 import replication_pb2
 import replication_pb2_grpc
 
+LIDER_ENDERECO = 'localhost:50050'
 class Replica (replication_pb2_grpc.ReplicaServicoServicer):
     def __init__(self, replica_id):
         self.replica_id = replica_id
@@ -38,6 +39,18 @@ class Replica (replication_pb2_grpc.ReplicaServicoServicer):
         with open(self.ARQUIVO_FINAL, 'w') as f:
             json.dump(self.dados_finais, f)
 
+    def sync_lider(self, ultimo_offset):
+        print(f"[Replica {self.replica_id}] Sincronizando com o líder até o offset {ultimo_offset}")
+        with grpc.insecure_channel(LIDER_ENDERECO) as channel:
+            stub = replication_pb2_grpc.LiderServicoStub(channel)
+            resposta = stub.SyncLog(replication_pb2.SyncRequest(ultimo_offset=ultimo_offset))
+            print(f"[Replica {self.replica_id}] Sincronizando {len(resposta.entradas)} entradas")
+
+            for entrada in resposta.entradas:
+                self.dados_intermediarios.append(entrada)
+            self.salvar_log()
+            #self.dados_finais[self.dados_intermediarios['chave']] = self.dados_intermediarios['valor']
+            #self.salvar_commit()
 
     def PushEntry(self, requisicao, contexto):
         entrada = {
@@ -51,6 +64,9 @@ class Replica (replication_pb2_grpc.ReplicaServicoServicer):
         if requisicao.offset != offset_esperado:
             print(f"[Replica {self.replica_id}] Inconsistência detectada. Esperado offset {offset_esperado}, recebido {requisicao.offset}")
             self.apagar_log(requisicao.offset)
+            ultimo_offset = offset_esperado-1
+            self.sync_lider(ultimo_offset)
+        
             return replication_pb2.AckResponse(
                 sucesso=False,
                 mensagem="Offset inconsistente."

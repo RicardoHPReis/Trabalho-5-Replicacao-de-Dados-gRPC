@@ -1,8 +1,8 @@
-import grpc
 from concurrent import futures
+import threading as th
 import argparse as arg
+import grpc
 import time
-import threading
 import json
 import os
 
@@ -20,7 +20,7 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
         self.offset = 0
         self.num_replicas = num_replicas
         self.committed_offsets = set()
-        self.lock = threading.Lock()
+        self.lock = th.Lock()
         
         self.replicas = [f'localhost:5005{i}' for i in range(1, num_replicas + 1)]
 
@@ -110,6 +110,14 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
         chave = requisicao.chave
         valor = self.committed.get(chave, "")
         return replication_pb2.QueryResponse(valor=valor, committed=chave in self.committed)
+    
+    def SyncLog(self, requisicao, contexto):
+        offset_base = requisicao.last_known_offset + 1
+        envios = [
+            replication_pb2.LogEntry(data=e["data"], epoch=e["epoch"], offset=e["offset"])
+            for e in self.log if e["offset"] >= offset_base
+        ]
+        return replication_pb2.SyncResponse(entries=envios)
 
 
 if __name__ == '__main__':
