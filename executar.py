@@ -14,7 +14,7 @@ t.sleep(3)
 sub.Popen(f'start cmd /k python "{os.path.join(pasta_sistema, "lider.py")}" --replicas {num_replicas}', shell=True)
 t.sleep(1)
 for i in range(1, num_replicas + 1):
-    sub.Popen(f'start cmd /k python "{os.path.join(pasta_sistema, "replica.py")}" --porta {50050 + i}', shell=True)
+    sub.Popen(f'start cmd /k python "{os.path.join(pasta_sistema, "replica.py")}" --id {i}', shell=True)
     t.sleep(0.5)
     
 sub.Popen(f'start cmd /k python "{os.path.join(pasta_sistema, "cliente.py")}"', shell=True)

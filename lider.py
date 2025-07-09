@@ -51,39 +51,40 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
     def salvar_log(self):
         with open(ARQUIVO_LOG, 'w') as f:
             json.dump(self.log, f)
+            
+    def apagar_log(self, offset):
+        self.log = [item for item in self.log if item.get('offset') < offset]
+        self.salvar_log()
 
     def salvar_commit(self):
         with open(ARQUIVO_COMMIT, 'w') as f:
             json.dump(self.committed, f)
-
+    
+    
     def AppendData(self, requisicao, contexto):
         with self.lock:
-            entry = {
+            entrada = {
                 'epoca': self.epoca,
                 'offset': self.offset,
                 'chave': requisicao.chave,
                 'valor': requisicao.valor
             }
-            print(f"[Lider] Recebido do cliente: {entry}")
+            print(f"[Lider] Recebido do cliente: {entrada}")
 
-            # Salva no log local
-            self.log.append(entry)
+            self.log.append(entrada)
             self.salvar_log()
-
-            # Envia para as réplicas
-            log_entry = replication_pb2.LogEntry(**entry)
+            log_entrada = replication_pb2.LogEntry(**entrada)
             ack_cont = 0
             for i, stub in enumerate(self.replica_stubs):
                 try:
-                    resposta = stub.PushEntry(log_entry)
+                    resposta = stub.PushEntry(log_entrada)
                     if resposta.sucesso:
                         ack_cont += 1
                 except grpc.RpcError as e:
                     print(f"[Lider] Falha ao contatar réplica: {e}")
 
-            # Confirma com quórum
             if ack_cont > self.num_replicas / 2:
-                print(f"[Lider] Quórum alcançado: {ack_cont} confirmações.")
+                print(f"[Lider] Quórum alcançado: Recebido {ack_cont} confirmações de {self.num_replicas} réplicas.")
                 commit_req = replication_pb2.CommitRequest(
                     epoca=self.epoca, offset=self.offset
                 )
@@ -101,6 +102,7 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
                 self.offset += 1
                 return replication_pb2.AppendResponse(sucesso=True, mensagem="Dados gravados com sucesso.")
             else:
+                self.apagar_log(self.offset)
                 print("[Lider] Falha ao obter quórum.")
                 return replication_pb2.AppendResponse(sucesso=False, mensagem="Falha ao gravar: sem quórum.")
 
