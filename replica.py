@@ -47,7 +47,13 @@ class Replica (replication_pb2_grpc.ReplicaServicoServicer):
             'valor': requisicao.valor
         }
 
-        offset_esperado = self.dados_intermediarios[-1]['offset'] + 1 if self.dados_intermediarios else 0
+        offset_atual = self.dados_intermediarios[-1]['offset'] if self.dados_intermediarios else 0
+        if requisicao.offset == offset_atual:
+            print(f"[Replica {self.replica_id}] Recebido log duplicado: {entrada}")
+            self.apagar_log(requisicao.offset)
+            
+        offset_atual = self.dados_intermediarios[-1]['offset'] if self.dados_intermediarios else 0
+        offset_esperado = offset_atual + 1
         if requisicao.offset != offset_esperado:
             print(f"[Replica {self.replica_id}] Inconsistência detectada. Esperado {offset_esperado}, recebido {requisicao.offset}")
             self.apagar_log(requisicao.offset)

@@ -18,3 +18,5 @@ for i in range(1, num_replicas + 1):
     t.sleep(0.5)
     
 sub.Popen(f'start cmd /k python "{os.path.join(pasta_sistema, "cliente.py")}"', shell=True)
+#start cmd /k python replica.py --id 1
+#start cmd /k python replica.py --id 2
