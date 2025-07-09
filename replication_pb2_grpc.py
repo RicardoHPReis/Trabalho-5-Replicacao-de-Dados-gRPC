@@ -44,11 +44,6 @@ class LiderServicoStub(object):
                 request_serializer=replication__pb2.QueryRequest.SerializeToString,
                 response_deserializer=replication__pb2.QueryResponse.FromString,
                 _registered_method=True)
-        self.SyncLog = channel.unary_unary(
-                '/replication.LiderServico/SyncLog',
-                request_serializer=replication__pb2.SyncRequest.SerializeToString,
-                response_deserializer=replication__pb2.SyncResponse.FromString,
-                _registered_method=True)
 
 
 class LiderServicoServicer(object):
@@ -68,13 +63,6 @@ class LiderServicoServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SyncLog(self, request, context):
-        """Replica -> Líder:
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_LiderServicoServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -87,11 +75,6 @@ def add_LiderServicoServicer_to_server(servicer, server):
                     servicer.QueryData,
                     request_deserializer=replication__pb2.QueryRequest.FromString,
                     response_serializer=replication__pb2.QueryResponse.SerializeToString,
-            ),
-            'SyncLog': grpc.unary_unary_rpc_method_handler(
-                    servicer.SyncLog,
-                    request_deserializer=replication__pb2.SyncRequest.FromString,
-                    response_serializer=replication__pb2.SyncResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -148,33 +131,6 @@ class LiderServico(object):
             '/replication.LiderServico/QueryData',
             replication__pb2.QueryRequest.SerializeToString,
             replication__pb2.QueryResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def SyncLog(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/replication.LiderServico/SyncLog',
-            replication__pb2.SyncRequest.SerializeToString,
-            replication__pb2.SyncResponse.FromString,
             options,
             channel_credentials,
             insecure,

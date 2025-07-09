@@ -8,9 +8,6 @@ service LiderServico {
 
   // Cliente -> Líder: Consulta dados por chave
   rpc QueryData(QueryRequest) returns (QueryResponse);
-
-  // Replica -> Líder:
-  rpc SyncLog(SyncRequest) returns (SyncResponse);
 }
 
 service ReplicaServico {
@@ -38,14 +35,6 @@ message QueryRequest {
 message QueryResponse {
   string valor = 1;
   bool committed = 2;
-}
-
-message SyncRequest {
-  int32 ultimo_offset = 1;
-}
-
-message SyncResponse {
-  repeated LogEntry entradas = 1;
 }
 
 message LogEntry {

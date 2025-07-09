@@ -59,7 +59,15 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
     def salvar_commit(self):
         with open(ARQUIVO_COMMIT, 'w') as f:
             json.dump(self.committed, f)
-    
+
+    def sync_replica(self, stub, offset, offset_novo):
+        print(f"[Lider] Reenviando entradas para réplica a partir do offset {offset+1} até {offset_novo-1}")
+        for entrada in self.log:
+            if entrada['offset'] > offset and entrada['offset'] < offset_novo:
+                try:
+                    stub.PushEntry(replication_pb2.LogEntry(**entrada))
+                except grpc.RpcError:
+                    print(f"[Lider] Falha ao reenviar entrada {entrada['offset']}")
     
     def AppendData(self, requisicao, contexto):
         with self.lock:
@@ -80,14 +88,24 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
                     resposta = stub.PushEntry(log_entrada)
                     if resposta.sucesso:
                         ack_cont += 1
+                    else:
+                        print(f"[Lider] Réplica {i+1} retornou falha: {resposta.mensagem}")
+                        ultimo_offset = int(resposta.mensagem.split(':')[-1])
+                        self.sync_replica(stub, ultimo_offset, self.offset)
+                        ajuste = stub.PushEntry(log_entrada)
+                        if ajuste.sucesso:
+                            for j in range(ultimo_offset + 1, self.offset):
+                                commit_ajuste = replication_pb2.CommitRequest(epoca=self.epoca, offset=j)
+                                stub.CommitEntry(commit_ajuste)
+                            ack_cont += 1
+                        else:
+                            print(f"[Lider] Ajuste falhou para réplica {i+1}.")
                 except grpc.RpcError as e:
-                    print(f"[Lider] Falha ao contatar réplica: {e}")
+                    print(f"[Lider] Falha ao contatar réplica {i+1}.")
 
             if ack_cont > self.num_replicas / 2:
                 print(f"[Lider] Quórum alcançado: Recebido {ack_cont} confirmações de {self.num_replicas} réplicas.")
-                commit_req = replication_pb2.CommitRequest(
-                    epoca=self.epoca, offset=self.offset
-                )
+                commit_req = replication_pb2.CommitRequest(epoca=self.epoca, offset=self.offset)
                 for stub in self.replica_stubs:
                     try:
                         stub.CommitEntry(commit_req)
@@ -110,14 +128,6 @@ class Lider(replication_pb2_grpc.LiderServicoServicer):
         chave = requisicao.chave
         valor = self.committed.get(chave, "")
         return replication_pb2.QueryResponse(valor=valor, committed=chave in self.committed)
-    
-    def SyncLog(self, requisicao, contexto):
-        offset_base = requisicao.last_known_offset + 1
-        envios = [
-            replication_pb2.LogEntry(data=e["data"], epoch=e["epoch"], offset=e["offset"])
-            for e in self.log if e["offset"] >= offset_base
-        ]
-        return replication_pb2.SyncResponse(entries=envios)
 
 
 if __name__ == '__main__':
